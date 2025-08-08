@@ -1,8 +1,10 @@
 package manager
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -41,13 +43,6 @@ func (c *Client) readMessages() {
 			}
 			break
 		}
-		var msg Message
-
-		if err := json.Unmarshal(payload, &msg); err != nil {
-			fmt.Println("json unmarshalling err: ", err)
-			continue
-		}
-
 		for wsclient := range c.manager.clients {
 			wsclient.egress <- payload
 		}
@@ -72,15 +67,38 @@ func (c *Client) writeMessages() {
 				}
 				return
 			}
-			if err := c.connection.WriteMessage(websocket.TextMessage, message); err != nil {
+			var msg Message
+			if err := json.Unmarshal(message, &msg); err != nil {
+				fmt.Println("json unmarshalling err: ", err)
+				continue
+			}
+
+			if err := c.connection.WriteMessage(websocket.TextMessage, msg.getMessageHTML()); err != nil {
 				fmt.Println("failed to send the message : ", err)
 
 			}
 
 			fmt.Println("message sent")
 		default:
-			fmt.Println("nothing")
 		}
 	}
+}
 
+func (msg *Message) getMessageHTML() []byte {
+	tmpl, err := template.ParseFiles("views/message.html")
+	if err != nil {
+		fmt.Println("templete parsing err: ", err)
+		return nil
+	}
+
+	var renderedMessage bytes.Buffer
+
+	if err := tmpl.Execute(&renderedMessage, msg); err != nil {
+		fmt.Println("execution err could not replace : ", err)
+		return nil
+	}
+
+	fmt.Println("generated HTML with replaced obj: ", renderedMessage.String())
+
+	return renderedMessage.Bytes()
 }

@@ -19,5 +19,5 @@ func registerRoutes(router *gin.Engine) {
 }
 
 func ServeIndex(c *gin.Context) {
-	c.File("index.html")
+	c.File("views/index.html")
 }
