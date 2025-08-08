@@ -40,6 +40,10 @@ func (m *Manager) ServeWS(c *gin.Context) {
 	}
 
 	client := NewClient(conn, m)
+	m.addClient(client)
+
+	go client.readMessages()
+
 }
 
 func (m *Manager) addClient(client *Client) {
@@ -47,4 +51,14 @@ func (m *Manager) addClient(client *Client) {
 	defer m.Unlock()
 
 	m.clients[client] = true
+}
+
+func (m *Manager) removeClient(client *Client) {
+	m.Lock()
+	defer m.Unlock()
+
+	if _, ok := m.clients[client]; ok {
+		client.connection.Close()
+		delete(m.clients, client)
+	}
 }
