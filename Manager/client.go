@@ -1,15 +1,22 @@
 package manager
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/gorilla/websocket"
 )
 
+type Message struct {
+	Message string `json:"message"`
+}
+
 type Client struct {
 	connection *websocket.Conn
 	manager    *Manager
+	// egress channel is an unbuffered channel which is used to avoid concurrent writes on the websocket conn
+	egress chan []byte
 }
 
 type ClientList map[*Client]bool
@@ -18,6 +25,7 @@ func NewClient(conn *websocket.Conn, manager *Manager) *Client {
 	return &Client{
 		connection: conn,
 		manager:    manager,
+		egress:     make(chan []byte),
 	}
 }
 
@@ -33,9 +41,46 @@ func (c *Client) readMessages() {
 			}
 			break
 		}
+		var msg Message
+
+		if err := json.Unmarshal(payload, &msg); err != nil {
+			fmt.Println("json unmarshalling err: ", err)
+			continue
+		}
+
+		for wsclient := range c.manager.clients {
+			wsclient.egress <- payload
+		}
 
 		fmt.Println(messageType)
 		fmt.Println(string(payload))
 
 	}
+}
+
+func (c *Client) writeMessages() {
+	defer func() {
+		c.manager.removeClient(c)
+	}()
+
+	for {
+		select {
+		case message, ok := <-c.egress:
+			if !ok {
+				if err := c.connection.WriteMessage(websocket.CloseMessage, nil); err != nil {
+					fmt.Println("conn closed :", err)
+				}
+				return
+			}
+			if err := c.connection.WriteMessage(websocket.TextMessage, message); err != nil {
+				fmt.Println("failed to send the message : ", err)
+
+			}
+
+			fmt.Println("message sent")
+		default:
+			fmt.Println("nothing")
+		}
+	}
+
 }

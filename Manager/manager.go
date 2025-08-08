@@ -43,6 +43,7 @@ func (m *Manager) ServeWS(c *gin.Context) {
 	m.addClient(client)
 
 	go client.readMessages()
+	go client.writeMessages()
 
 }
 
