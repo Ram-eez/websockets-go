@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -15,6 +16,7 @@ type Message struct {
 }
 
 type Client struct {
+	id         string
 	connection *websocket.Conn
 	manager    *Manager
 	// egress channel is an unbuffered channel which is used to avoid concurrent writes on the websocket conn
@@ -24,7 +26,9 @@ type Client struct {
 type ClientList map[*Client]bool
 
 func NewClient(conn *websocket.Conn, manager *Manager) *Client {
+	NewUUID := uuid.New()
 	return &Client{
+		id:         NewUUID.String(),
 		connection: conn,
 		manager:    manager,
 		egress:     make(chan []byte),
