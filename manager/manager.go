@@ -19,6 +19,8 @@ var (
 	}
 )
 
+var RegisteredUsers []User
+
 type Manager struct {
 	clients ClientList
 	sync.RWMutex
@@ -31,6 +33,9 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) ServeWS(c *gin.Context) {
+
+	//user := handlers.GetUserFromSession(c)
+
 	log.Println("starting websocket new conn")
 
 	conn, err := websocketUpgrader.Upgrade(c.Writer, c.Request, nil)
@@ -39,7 +44,7 @@ func (m *Manager) ServeWS(c *gin.Context) {
 		return
 	}
 
-	client := NewClient(conn, m)
+	client := NewClient(conn, m, user)
 	m.addClient(client)
 
 	go client.readMessages()

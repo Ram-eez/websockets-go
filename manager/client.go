@@ -11,6 +11,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type User struct {
+	Username string `json:"username"`
+	ID       string `json:"id"`
+	Password string `json:"password"`
+}
+
 type Message struct {
 	Message string `json:"message"`
 }
@@ -18,6 +24,7 @@ type Message struct {
 type Client struct {
 	id         string
 	connection *websocket.Conn
+	user       *User
 	manager    *Manager
 	// egress channel is an unbuffered channel which is used to avoid concurrent writes on the websocket conn
 	egress chan []byte
@@ -25,11 +32,12 @@ type Client struct {
 
 type ClientList map[*Client]bool
 
-func NewClient(conn *websocket.Conn, manager *Manager) *Client {
+func NewClient(conn *websocket.Conn, manager *Manager, user *User) *Client {
 	NewUUID := uuid.New()
 	return &Client{
 		id:         NewUUID.String(),
 		connection: conn,
+		user:       user,
 		manager:    manager,
 		egress:     make(chan []byte),
 	}
