@@ -1,7 +1,7 @@
 package routes
 
 import (
-	manager "websockets/Manager"
+	manager "websockets/manager"
 
 	"github.com/gin-gonic/gin"
 )
