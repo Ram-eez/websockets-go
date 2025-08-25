@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -47,10 +46,11 @@ func (m *Manager) ServeWS(c *gin.Context) {
 	}
 
 	session := sessions.Default(c)
-	u := session.Get("user")
-	var user *User
-	if err := json.Unmarshal(u.([]byte), user); err != nil {
-		log.Fatal("could not unmarshall user struct")
+	password := session.Get("userPassword").(string)
+	username := session.Get("username").(string)
+	user := &User{
+		Username: username,
+		Password: password,
 	}
 	client := NewClient(conn, m, user)
 	m.addClient(client)

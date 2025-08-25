@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"websockets/manager"
@@ -38,14 +37,9 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	U, err := json.Marshal(user)
-	if err != nil {
-		fmt.Println("could not marshal user struct")
-		return
-	}
-
 	session := sessions.Default(c)
-	session.Set("user", U)
+	session.Set("userPassword", user.Password)
+	session.Set("username", user.Username)
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
 
