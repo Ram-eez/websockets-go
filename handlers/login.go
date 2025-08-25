@@ -19,13 +19,16 @@ func LoginHandler(c *gin.Context) {
 
 	user, err := FindUser(newUsr)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("could not find valid user: ", err)
+		c.Redirect(http.StatusFound, "/login")
+		return
 	}
 
 	fmt.Println("retrieved user: ", user)
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(newUsr.Password)); err != nil {
 		fmt.Println("invalid password")
+		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 
