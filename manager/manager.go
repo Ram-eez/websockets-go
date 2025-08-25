@@ -1,10 +1,12 @@
 package manager
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
@@ -44,6 +46,12 @@ func (m *Manager) ServeWS(c *gin.Context) {
 		return
 	}
 
+	session := sessions.Default(c)
+	u := session.Get("user")
+	var user *User
+	if err := json.Unmarshal(u.([]byte), user); err != nil {
+		log.Fatal("could not unmarshall user struct")
+	}
 	client := NewClient(conn, m, user)
 	m.addClient(client)
 

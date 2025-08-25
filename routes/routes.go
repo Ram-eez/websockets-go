@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"websockets/handlers"
 	manager "websockets/manager"
 
 	"github.com/gin-gonic/gin"
@@ -13,8 +14,8 @@ func RegisterRoutes(router *gin.Engine) {
 
 	authRoutes := router.Group("/")
 	{
-		authRoutes.GET("/register")
-		authRoutes.GET("/login")
+		authRoutes.GET("/register", handlers.RegisterHandler)
+		authRoutes.GET("/login", handlers.LoginHandler)
 	}
 }
 
