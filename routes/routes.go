@@ -8,17 +8,28 @@ import (
 )
 
 func RegisterRoutes(router *gin.Engine) {
-	Manager := manager.NewManager()
-	router.GET("/", ServeIndex)
-	router.GET("/ws", Manager.ServeWS)
+	manager := manager.NewManager()
 
-	authRoutes := router.Group("/")
-	{
-		authRoutes.GET("/register", handlers.RegisterHandler)
-		authRoutes.GET("/login", handlers.LoginHandler)
-	}
+	// (frontend)
+	router.GET("/chat", ServeIndex)
+	router.GET("/register", ServeRegister)
+	router.GET("/login", ServeLogin)
+	// websocket endpoint
+	router.GET("/ws", manager.ServeWS)
+
+	// auth routes
+	router.POST("/register", handlers.RegisterHandler)
+	router.POST("/login", handlers.LoginHandler)
 }
 
 func ServeIndex(c *gin.Context) {
 	c.File("views/index.html")
+}
+
+func ServeRegister(c *gin.Context) {
+	c.File("views/register.html")
+}
+
+func ServeLogin(c *gin.Context) {
+	c.File("views/login.html")
 }

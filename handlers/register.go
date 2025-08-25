@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 	"websockets/manager"
 
 	"github.com/gin-gonic/gin"
@@ -23,4 +24,6 @@ func RegisterHandler(c *gin.Context) {
 	newUsr.ID = uuid.New().String()
 
 	manager.RegisteredUsers = append(manager.RegisteredUsers, newUsr)
+
+	c.Redirect(http.StatusFound, "/login")
 }
