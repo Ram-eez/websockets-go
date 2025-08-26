@@ -30,7 +30,7 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := middleware.CreateToken(user.Username, user.ID)
+	tokenString, err := middleware.CreateToken(user)
 	if err != nil {
 		fmt.Println("err : ", err)
 		return

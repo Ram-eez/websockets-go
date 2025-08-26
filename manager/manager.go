@@ -1,13 +1,12 @@
 package manager
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
 )
 
@@ -20,7 +19,7 @@ var (
 		},
 	}
 )
-
+var SecretKey = []byte("secret-key")
 var RegisteredUsers []User
 
 type Manager struct {
@@ -45,27 +44,24 @@ func (m *Manager) ServeWS(c *gin.Context) {
 		log.Fatal("could not upgrade conn: ", conn)
 		return
 	}
-	session := sessions.Default(c)
-	val := session.Get("username")
-	fmt.Println(val)
-	username, ok := val.(string)
-	if !ok {
-		fmt.Println("could not fetch username")
+	token, err := c.Cookie("Authorization")
+	if err != nil {
+		log.Fatal("could not get jwt token from cookies", err)
 		return
 	}
 
-	val2 := session.Get("userPassword")
-	pass, ok := val2.(string)
-	if !ok {
-		fmt.Println("could not fetch pass")
-		return
-	}
+	tokenString, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
 
-	user := &User{
-		Username: username,
-		Password: pass,
-	}
-	client := NewClient(conn, m, user)
+	claims := tokenString.Claims.(jwt.MapClaims)
+
+	var user User
+	username := claims["username"].(string)
+	userID := claims["userID"].(string)
+	user.Username = username
+	user.ID = userID
+	client := NewClient(conn, m, &user)
 	m.addClient(client)
 
 	go client.readMessages()

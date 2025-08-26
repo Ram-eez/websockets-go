@@ -3,20 +3,21 @@ package middleware
 import (
 	"fmt"
 	"time"
+	"websockets/manager"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = []byte("secret-key")
+var SecretKey = []byte("secret-key")
 
-func CreateToken(username string, ID string) (string, error) {
+func CreateToken(user *manager.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": username,
-		"userID":   ID,
+		"username": user.Username,
+		"userID":   user.ID,
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	})
 
-	tokenString, err := token.SignedString(secretKey)
+	tokenString, err := token.SignedString(SecretKey)
 	if err != nil {
 		fmt.Println("err signing the jwt token")
 		return "", err
@@ -28,7 +29,7 @@ func CreateToken(username string, ID string) (string, error) {
 func VerifyToken(tokenString string) error {
 
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
-		return secretKey, nil
+		return SecretKey, nil
 	})
 
 	if err != nil {
