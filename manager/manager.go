@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -44,13 +45,25 @@ func (m *Manager) ServeWS(c *gin.Context) {
 		log.Fatal("could not upgrade conn: ", conn)
 		return
 	}
-
 	session := sessions.Default(c)
-	password := session.Get("userPassword").(string)
-	username := session.Get("username").(string)
+	val := session.Get("username")
+	fmt.Println(val)
+	username, ok := val.(string)
+	if !ok {
+		fmt.Println("could not fetch username")
+		return
+	}
+
+	val2 := session.Get("userPassword")
+	pass, ok := val2.(string)
+	if !ok {
+		fmt.Println("could not fetch pass")
+		return
+	}
+
 	user := &User{
 		Username: username,
-		Password: password,
+		Password: pass,
 	}
 	client := NewClient(conn, m, user)
 	m.addClient(client)

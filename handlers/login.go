@@ -6,7 +6,6 @@ import (
 	"websockets/manager"
 	"websockets/middleware"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -31,15 +30,12 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := middleware.CreateToken(newUsr.Username)
+	tokenString, err := middleware.CreateToken(user.Username, user.ID)
 	if err != nil {
 		fmt.Println("err : ", err)
 		return
 	}
 
-	session := sessions.Default(c)
-	session.Set("userPassword", user.Password)
-	session.Set("username", user.Username)
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
 
