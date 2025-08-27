@@ -15,8 +15,8 @@ type Client struct {
 	connection *websocket.Conn
 	user       *models.User
 	manager    *Manager
-	// egress channel is an https://github.com/Ram-eez/websockets-gounbuffered channel which is used to avoid concurrent writes on the websocket conn
-	egress chan []byte
+	// egress channel is an unbuffered channel which is used to avoid concurrent writes on the websocket conn
+	egress chan models.Message
 }
 
 type ClientList map[*Client]bool
@@ -28,7 +28,7 @@ func NewClient(conn *websocket.Conn, manager *Manager, user *models.User) *Clien
 		connection: conn,
 		user:       user,
 		manager:    manager,
-		egress:     make(chan []byte),
+		egress:     make(chan models.Message),
 	}
 }
 
@@ -45,8 +45,16 @@ func (c *Client) readMessages() {
 			break
 		}
 
+		var msg models.Message
+		if err := json.Unmarshal(payload, &msg); err != nil {
+			fmt.Println("json unmarshalling err: ", err)
+			continue
+		}
+
+		msg.Username = c.user.Username
+
 		for wsclient := range c.manager.clients {
-			wsclient.egress <- payload
+			wsclient.egress <- msg
 		}
 
 		fmt.Println(messageType)
@@ -69,14 +77,8 @@ func (c *Client) writeMessages() {
 				}
 				return
 			}
-			var msg models.Message
-			if err := json.Unmarshal(message, &msg); err != nil {
-				fmt.Println("json unmarshalling err: ", err)
-				continue
-			}
-			msg.Username = c.user.Username
 
-			if err := c.connection.WriteMessage(websocket.TextMessage, msg.GetMessageHTML()); err != nil {
+			if err := c.connection.WriteMessage(websocket.TextMessage, message.GetMessageHTML()); err != nil {
 				fmt.Println("failed to send the message : ", err)
 
 			}

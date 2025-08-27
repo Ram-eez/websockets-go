@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"time"
 	"websockets/models"
@@ -43,12 +44,32 @@ func VerifyToken(tokenString string) error {
 	return nil
 }
 
-func GetUserFromToken(tokenString *jwt.Token) {
-	claims := tokenString.Claims.(jwt.MapClaims)
+func GetUserFromToken(tokenString string) *models.User {
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		return []byte(models.SecretKey), nil
+	})
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		fmt.Println("could not get claims from the token", err)
+	}
 
 	var user models.User
-	username := claims["username"].(string)
-	userID := claims["userID"].(string)
-	user.Username = username
-	user.ID = userID
+
+	switch {
+	case token.Valid:
+		user.Username = claims["username"].(string)
+		user.ID = claims["userID"].(string)
+		user.Password = ""
+	case errors.Is(err, jwt.ErrTokenMalformed):
+		fmt.Println("That's not even a token")
+	case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+		fmt.Println("Invalid signature")
+	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
+		fmt.Println("Timing is everything")
+	default:
+		fmt.Println("Couldn't handle this token:", err)
+	}
+
+	return &user
 }

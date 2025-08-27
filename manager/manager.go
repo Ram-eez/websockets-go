@@ -4,10 +4,9 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"websockets/models"
+	"websockets/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
 )
 
@@ -47,18 +46,9 @@ func (m *Manager) ServeWS(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(models.SecretKey), nil
-	})
+	user := middleware.GetUserFromToken(token)
 
-	claims := tokenString.Claims.(jwt.MapClaims)
-
-	var user models.User
-	username := claims["username"].(string)
-	userID := claims["userID"].(string)
-	user.Username = username
-	user.ID = userID
-	client := NewClient(conn, m, &user)
+	client := NewClient(conn, m, user)
 	m.addClient(client)
 
 	go client.readMessages()
