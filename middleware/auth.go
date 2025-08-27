@@ -3,14 +3,14 @@ package middleware
 import (
 	"fmt"
 	"time"
-	"websockets/manager"
+	"websockets/models"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 var SecretKey = []byte("secret-key")
 
-func CreateToken(user *manager.User) (string, error) {
+func CreateToken(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.Username,
 		"userID":   user.ID,
@@ -46,7 +46,7 @@ func VerifyToken(tokenString string) error {
 func GetUserFromToken(tokenString *jwt.Token) {
 	claims := tokenString.Claims.(jwt.MapClaims)
 
-	var user User
+	var user models.User
 	username := claims["username"].(string)
 	userID := claims["userID"].(string)
 	user.Username = username

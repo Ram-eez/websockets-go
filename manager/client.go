@@ -1,31 +1,19 @@
 package manager
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
+	"websockets/models"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
-type User struct {
-	Username string `json:"username"`
-	ID       string `json:"id"`
-	Password string `json:"password"`
-}
-
-type Message struct {
-	Username string `json:"username"`
-	Message  string `json:"message"`
-}
-
 type Client struct {
 	id         string
 	connection *websocket.Conn
-	user       *User
+	user       *models.User
 	manager    *Manager
 	// egress channel is an https://github.com/Ram-eez/websockets-gounbuffered channel which is used to avoid concurrent writes on the websocket conn
 	egress chan []byte
@@ -33,7 +21,7 @@ type Client struct {
 
 type ClientList map[*Client]bool
 
-func NewClient(conn *websocket.Conn, manager *Manager, user *User) *Client {
+func NewClient(conn *websocket.Conn, manager *Manager, user *models.User) *Client {
 	NewUUID := uuid.New()
 	return &Client{
 		id:         NewUUID.String(),
@@ -81,14 +69,14 @@ func (c *Client) writeMessages() {
 				}
 				return
 			}
-			var msg Message
+			var msg models.Message
 			if err := json.Unmarshal(message, &msg); err != nil {
 				fmt.Println("json unmarshalling err: ", err)
 				continue
 			}
 			msg.Username = c.user.Username
 
-			if err := c.connection.WriteMessage(websocket.TextMessage, msg.getMessageHTML()); err != nil {
+			if err := c.connection.WriteMessage(websocket.TextMessage, msg.GetMessageHTML()); err != nil {
 				fmt.Println("failed to send the message : ", err)
 
 			}
@@ -97,23 +85,4 @@ func (c *Client) writeMessages() {
 		default:
 		}
 	}
-}
-
-func (msg *Message) getMessageHTML() []byte {
-	tmpl, err := template.ParseFiles("views/message.html")
-	if err != nil {
-		fmt.Println("templete parsing err: ", err)
-		return nil
-	}
-
-	var renderedMessage bytes.Buffer
-
-	if err := tmpl.Execute(&renderedMessage, msg); err != nil {
-		fmt.Println("execution err could not replace : ", err)
-		return nil
-	}
-
-	fmt.Println("generated HTML with replaced obj: ", renderedMessage.String())
-
-	return renderedMessage.Bytes()
 }

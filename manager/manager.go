@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"websockets/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -19,8 +20,6 @@ var (
 		},
 	}
 )
-var SecretKey = []byte("secret-key")
-var RegisteredUsers []User
 
 type Manager struct {
 	clients ClientList
@@ -49,12 +48,12 @@ func (m *Manager) ServeWS(c *gin.Context) {
 	}
 
 	tokenString, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
+		return []byte(models.SecretKey), nil
 	})
 
 	claims := tokenString.Claims.(jwt.MapClaims)
 
-	var user User
+	var user models.User
 	username := claims["username"].(string)
 	userID := claims["userID"].(string)
 	user.Username = username

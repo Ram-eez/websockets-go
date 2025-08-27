@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"websockets/manager"
+	"websockets/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -11,7 +11,7 @@ import (
 )
 
 func RegisterHandler(c *gin.Context) {
-	var newUsr manager.User
+	var newUsr models.User
 
 	newUsr.Username = c.PostForm("username")
 	hashedpass, err := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), 10)
@@ -23,7 +23,7 @@ func RegisterHandler(c *gin.Context) {
 	newUsr.Password = string(hashedpass)
 	newUsr.ID = uuid.New().String()
 
-	manager.RegisteredUsers = append(manager.RegisteredUsers, newUsr)
+	models.RegisteredUsers = append(models.RegisteredUsers, newUsr)
 
 	c.Redirect(http.StatusFound, "/login")
 }

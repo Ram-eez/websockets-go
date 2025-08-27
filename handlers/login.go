@@ -3,15 +3,15 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"websockets/manager"
 	"websockets/middleware"
+	"websockets/models"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func LoginHandler(c *gin.Context) {
-	var newUsr manager.User
+	var newUsr models.User
 	newUsr.Username = c.PostForm("username")
 	newUsr.Password = c.PostForm("password")
 
@@ -42,8 +42,8 @@ func LoginHandler(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/chat")
 }
 
-func FindUser(user manager.User) (*manager.User, error) {
-	for _, founduser := range manager.RegisteredUsers {
+func FindUser(user models.User) (*models.User, error) {
+	for _, founduser := range models.RegisteredUsers {
 		if founduser.Username == user.Username {
 			return &founduser, nil
 		}
