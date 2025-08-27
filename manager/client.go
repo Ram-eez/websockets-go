@@ -18,7 +18,8 @@ type User struct {
 }
 
 type Message struct {
-	Message string `json:"message"`
+	Username string `json:"username"`
+	Message  string `json:"message"`
 }
 
 type Client struct {
@@ -26,7 +27,7 @@ type Client struct {
 	connection *websocket.Conn
 	user       *User
 	manager    *Manager
-	// egress channel is an unbuffered channel which is used to avoid concurrent writes on the websocket conn
+	// egress channel is an https://github.com/Ram-eez/websockets-gounbuffered channel which is used to avoid concurrent writes on the websocket conn
 	egress chan []byte
 }
 
@@ -55,6 +56,7 @@ func (c *Client) readMessages() {
 			}
 			break
 		}
+
 		for wsclient := range c.manager.clients {
 			wsclient.egress <- payload
 		}
@@ -84,6 +86,7 @@ func (c *Client) writeMessages() {
 				fmt.Println("json unmarshalling err: ", err)
 				continue
 			}
+			msg.Username = c.user.Username
 
 			if err := c.connection.WriteMessage(websocket.TextMessage, msg.getMessageHTML()); err != nil {
 				fmt.Println("failed to send the message : ", err)

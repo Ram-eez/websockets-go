@@ -35,8 +35,6 @@ func NewManager() *Manager {
 
 func (m *Manager) ServeWS(c *gin.Context) {
 
-	//user := handlers.GetUserFromSession(c)
-
 	log.Println("starting websocket new conn")
 
 	conn, err := websocketUpgrader.Upgrade(c.Writer, c.Request, nil)

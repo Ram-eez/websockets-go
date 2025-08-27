@@ -42,3 +42,13 @@ func VerifyToken(tokenString string) error {
 
 	return nil
 }
+
+func GetUserFromToken(tokenString *jwt.Token) {
+	claims := tokenString.Claims.(jwt.MapClaims)
+
+	var user User
+	username := claims["username"].(string)
+	userID := claims["userID"].(string)
+	user.Username = username
+	user.ID = userID
+}
