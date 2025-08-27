@@ -38,15 +38,16 @@ func (m *Manager) ServeWS(c *gin.Context) {
 	conn, err := websocketUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Fatal("could not upgrade conn: ", conn)
-		return
 	}
 	token, err := c.Cookie("Authorization")
 	if err != nil {
 		log.Fatal("could not get jwt token from cookies", err)
-		return
 	}
 
-	user := middleware.GetUserFromToken(token)
+	user, err := middleware.GetUserFromToken(token)
+	if err != nil {
+		log.Fatal("user not authenticated for chat: ", err)
+	}
 
 	client := NewClient(conn, m, user)
 	m.addClient(client)

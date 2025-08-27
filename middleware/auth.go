@@ -27,27 +27,10 @@ func CreateToken(user *models.User) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyToken(tokenString string) error {
-
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
-		return SecretKey, nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if !token.Valid {
-		return fmt.Errorf("invalid token")
-	}
-
-	return nil
-}
-
-func GetUserFromToken(tokenString string) *models.User {
+func GetUserFromToken(tokenString string) (*models.User, error) {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return []byte(models.SecretKey), nil
+		return models.SecretKey, nil
 	})
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
@@ -63,13 +46,17 @@ func GetUserFromToken(tokenString string) *models.User {
 		user.Password = ""
 	case errors.Is(err, jwt.ErrTokenMalformed):
 		fmt.Println("That's not even a token")
+		return nil, err
 	case errors.Is(err, jwt.ErrTokenSignatureInvalid):
 		fmt.Println("Invalid signature")
+		return nil, err
 	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
 		fmt.Println("Timing is everything")
+		return nil, err
 	default:
 		fmt.Println("Couldn't handle this token:", err)
+		return nil, err
 	}
 
-	return &user
+	return &user, nil
 }
