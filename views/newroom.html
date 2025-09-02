@@ -1,0 +1,11 @@
+
+<div hx-ext="ws" ws-connect="/ws?room={{ .Room }}">  
+    <ul id="chat-app">
+
+    </ul>
+
+    <form id="form" ws-send>  
+        <input type="text" name="message" placeholder="Enter your message" required>
+        <button type="submit">Send Message</button>
+    </form>
+</div>

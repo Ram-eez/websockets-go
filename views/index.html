@@ -9,7 +9,13 @@
     <link rel="stylesheet" href="/static/chat.css">
 </head>
 <body>
-    <div hx-ext="ws" ws-connect="/ws">  
+    <div id="room-select" hx-get="/room" hx-trigger="load">
+        <h2>loading channels ...</h2>
+    </div>
+    <div id="create-room">
+        <button type="submit" hx-get="/create-room" hx-swap="outerHTML">create new room</button>
+    </div>
+    <!-- <div hx-ext="ws" ws-connect="/ws">  
         <ul id="chat-app">
 
         </ul>
@@ -18,6 +24,6 @@
             <input type="text" name="message" placeholder="Enter your message" required>
             <button type="submit">Send Message</button>
         </form>
-    </div>
+    </div> -->
 </body>
 </html>
