@@ -11,6 +11,7 @@ func RegisterRoutes(router *gin.Engine) {
 	manager := manager.NewManager()
 
 	// (frontend)
+	router.Static("/static", "./static")
 	router.GET("/chat", ServeIndex)
 	router.GET("/register", ServeRegister)
 	router.GET("/login", ServeLogin)

@@ -1,0 +1,158 @@
+/* auth.css — minimal, classless styles for login/register */
+
+/* --- Setup & theming --- */
+:root{
+  --bg: #0b0d10;
+  --card: #151a21;
+  --text: #e6eaf0;
+  --muted: #9aa3af;
+  --accent: #4f9cf9;
+  --accent-strong: #2f7be6;
+  --danger: #ef4444;
+  --ring: rgba(79,156,249,.6);
+  --shadow: 0 10px 25px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+@media (prefers-color-scheme: light){
+  :root{
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #0b1220;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-strong: #1d4ed8;
+    --ring: rgba(37,99,235,.3);
+    --shadow: 0 10px 30px rgba(2,6,23,.08);
+  }
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+  background: radial-gradient(1200px 800px at 70% -10%, rgba(79,156,249,.15), transparent 60%) , var(--bg);
+  color: var(--text);
+  display:grid;
+  place-items:center;
+  padding:24px;
+}
+
+/* --- Form Card --- */
+form{
+  width:100%;
+  max-width: 420px;
+  background: var(--card);
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  transform: translateZ(0);
+}
+
+form > * + *{ margin-top: 14px; }
+
+h1,h2{
+  margin:0 0 6px 0;
+  font-size: 20px;
+  letter-spacing:.2px;
+}
+
+/* --- Labels & inputs --- */
+label{
+  display:block;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing:.5px;
+  color: var(--muted);
+  margin-bottom:6px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"]{
+  width:100%;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,.22);
+  background: transparent;
+  color: var(--text);
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+input::placeholder{ color: color-mix(in srgb, var(--muted) 70%, transparent); }
+
+input:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+/* --- Button --- */
+button{
+  width:100%;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: white;
+  font-weight: 700;
+  letter-spacing:.3px;
+  cursor:pointer;
+  transition: transform .06s ease, filter .2s ease, box-shadow .2s ease;
+  box-shadow: 0 8px 18px rgba(37,99,235,.35);
+}
+
+button:hover{ filter: brightness(1.03); }
+button:active{ transform: translateY(1px); }
+button:disabled,
+form.htmx-request button{
+  opacity:.7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* --- Layout niceties --- */
+div > form{ /* works with your current markup */
+  margin-inline:auto;
+}
+
+/* Small helper rows if you add links/errors later */
+.row{ display:flex; gap:10px; }
+.row > *{ flex:1; }
+
+/* --- Messages (optional) --- */
+.notice{
+  padding:10px 12px;
+  border-radius:10px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.error{
+  padding:10px 12px;
+  border-radius:10px;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border:1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+/* --- HTMX states --- */
+.htmx-request input,
+.htmx-request button{
+  pointer-events:none;
+}
+
+.htmx-indicator{
+  display:none;
+}
+.htmx-request .htmx-indicator{
+  display:inline-block;
+}
+
+/* --- Accessibility --- */
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
+}

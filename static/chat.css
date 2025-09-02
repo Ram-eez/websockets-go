@@ -1,0 +1,103 @@
+/* chat.css — minimal styles for websocket chat */
+
+:root {
+  --bg: #0b0d10;
+  --card: #151a21;
+  --text: #e6eaf0;
+  --muted: #9aa3af;
+  --accent: #4f9cf9;
+  --accent-strong: #2f7be6;
+  --ring: rgba(79,156,249,.6);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #0b1220;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-strong: #1d4ed8;
+    --ring: rgba(37,99,235,.3);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font: 14px/1.4 system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+div[ws-connect] {
+  width: 100%;
+  max-width: 500px;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.3);
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+}
+
+/* --- Chat list --- */
+#chat-app {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 10px 0;
+  overflow-y: auto;
+  border-bottom: 1px solid rgba(148,163,184,.15);
+}
+
+#chat-app li {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  word-break: break-word;
+}
+
+/* --- Form --- */
+form {
+  display: flex;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+form input[type="text"] {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(148,163,184,.25);
+  background: transparent;
+  padding: 0 10px;
+  color: var(--text);
+}
+
+form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+  outline: none;
+}
+
+form button {
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter .15s ease;
+}
+
+form button:hover { filter: brightness(1.05); }
+form button:active { transform: translateY(1px); }
