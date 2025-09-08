@@ -21,6 +21,8 @@ func RegisterRoutes(router *gin.Engine) {
 	// auth routes
 	router.POST("/register", handlers.RegisterHandler)
 	router.POST("/login", handlers.LoginHandler)
+	router.POST("/create-room", handlers.CreateRoom)
+	router.GET("/room", handlers.GetAvalibleRooms)
 }
 
 func ServeIndex(c *gin.Context) {
