@@ -52,7 +52,15 @@ func (c *Client) readMessages() {
 			fmt.Println("json unmarshalling err: ", err)
 			continue
 		}
-		fmt.Println("username: ", msg.Username)
+		msg.Username = c.user.Username
+
+		roomID := msg.RoomID
+		if roomID == "" {
+			roomID = msg.Username + "'s lobby"
+		}
+
+		r := c.manager.GetorCreateRoom(roomID)
+		r.broadcast <- msg
 
 		fmt.Println(messageType)
 		fmt.Println(string(payload))
@@ -62,26 +70,16 @@ func (c *Client) readMessages() {
 
 func (c *Client) writeMessages() {
 	defer func() {
-		c.manager.removeClient(c)
+		c.manager.UnregisterEverywhere(c)
 	}()
 
-	for {
-		select {
-		case message, ok := <-c.egress:
-			if !ok {
-				if err := c.connection.WriteMessage(websocket.CloseMessage, nil); err != nil {
-					fmt.Println("conn closed :", err)
-				}
-				return
-			}
-
-			if err := c.connection.WriteMessage(websocket.TextMessage, message.GetMessageHTML()); err != nil {
-				fmt.Println("failed to send the message : ", err)
-
-			}
-
-			fmt.Println("message sent")
-		default:
+	for msg := range c.egress {
+		if err := c.connection.WriteMessage(
+			websocket.TextMessage,
+			[]byte(msg.GetMessageHTML()),
+		); err != nil {
+			fmt.Println("failed to send the message:", err)
+			return
 		}
 	}
 }

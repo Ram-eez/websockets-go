@@ -34,11 +34,9 @@ func (r *Room) Run() {
 
 		case client := <-r.register:
 			r.clients[client.id] = client
-			go client.writeMessages()
 
 		case client := <-r.unregister:
 			delete(r.clients, client.id)
-			close(client.egress)
 
 		case msg := <-r.broadcast:
 			for _, client := range r.clients {

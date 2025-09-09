@@ -15,6 +15,7 @@ type User struct {
 type Message struct {
 	Username string `json:"username"`
 	Message  string `json:"message"`
+	RoomID   string `json:"roomid"`
 }
 
 var RegisteredUsers []User
