@@ -21,13 +21,13 @@ var (
 )
 
 type Manager struct {
-	clients ClientList
+	rooms map[string]*Room
 	sync.RWMutex
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		clients: make(ClientList),
+		rooms: make(map[string]*Room),
 	}
 }
 
@@ -50,26 +50,54 @@ func (m *Manager) ServeWS(c *gin.Context) {
 	}
 
 	client := NewClient(conn, m, user)
-	m.addClient(client)
 
 	go client.readMessages()
 	go client.writeMessages()
 
-}
-
-func (m *Manager) addClient(client *Client) {
-	m.Lock()
-	defer m.Unlock()
-
-	m.clients[client] = true
-}
-
-func (m *Manager) removeClient(client *Client) {
-	m.Lock()
-	defer m.Unlock()
-
-	if _, ok := m.clients[client]; ok {
-		client.connection.Close()
-		delete(m.clients, client)
+	roomID := c.Query("room")
+	if roomID == "" {
+		roomID = "lobby"
 	}
+	m.JoinRoom(client, roomID)
+
+}
+
+func (m *Manager) GetorCreateRoom(roomID string) *Room {
+	m.Lock()
+	defer m.Unlock()
+	if r, ok := m.rooms[roomID]; ok {
+		return r
+	}
+	r := NewRoom(m, roomID)
+	m.rooms[roomID] = r
+	go r.Run()
+	return r
+
+}
+
+func (m *Manager) JoinRoom(client *Client, roomID string) {
+	r := m.GetorCreateRoom(roomID)
+	r.register <- client
+}
+
+func (m *Manager) LeaveRoom(client *Client, roomID string) {
+	m.RLock()
+	r, ok := m.rooms[roomID]
+	m.RUnlock()
+	if ok {
+		r.unregister <- client
+	}
+}
+
+func (m *Manager) UnregisterEverywhere(client *Client) {
+	client.closeOnce.Do(func() {
+		m.RLock()
+		for _, r := range m.rooms {
+			r.unregister <- client
+		}
+		m.RUnlock()
+
+		close(client.egress)
+		_ = client.connection.Close()
+	})
 }

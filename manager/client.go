@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 	"websockets/models"
 
 	"github.com/google/uuid"
@@ -16,10 +17,11 @@ type Client struct {
 	user       *models.User
 	manager    *Manager
 	// egress channel is an unbuffered channel which is used to avoid concurrent writes on the websocket conn
-	egress chan models.Message
+	egress    chan models.Message
+	closeOnce sync.Once
 }
 
-type ClientList map[*Client]bool
+// type ClientList map[*Client]bool
 
 func NewClient(conn *websocket.Conn, manager *Manager, user *models.User) *Client {
 	NewUUID := uuid.New()
@@ -34,7 +36,7 @@ func NewClient(conn *websocket.Conn, manager *Manager, user *models.User) *Clien
 
 func (c *Client) readMessages() {
 	defer func() {
-		c.manager.removeClient(c)
+		c.manager.UnregisterEverywhere(c)
 	}()
 	for {
 		messageType, payload, err := c.connection.ReadMessage()
@@ -50,12 +52,7 @@ func (c *Client) readMessages() {
 			fmt.Println("json unmarshalling err: ", err)
 			continue
 		}
-
-		msg.Username = c.user.Username
-
-		for wsclient := range c.manager.clients {
-			wsclient.egress <- msg
-		}
+		fmt.Println("username: ", msg.Username)
 
 		fmt.Println(messageType)
 		fmt.Println(string(payload))
