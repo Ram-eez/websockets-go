@@ -21,7 +21,7 @@ func RegisterRoutes(router *gin.Engine) {
 	// auth routes
 	router.POST("/register", handlers.RegisterHandler)
 	router.POST("/login", handlers.LoginHandler)
-	router.POST("/create-room", handlers.CreateRoom)
+	router.POST("/create-room", manager.CreateRoomHandler)
 	router.GET("/room", handlers.GetAvalibleRooms)
 }
 

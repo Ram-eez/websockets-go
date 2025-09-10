@@ -7,6 +7,7 @@ import (
 	"websockets/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -100,4 +101,14 @@ func (m *Manager) UnregisterEverywhere(client *Client) {
 		close(client.egress)
 		_ = client.connection.Close()
 	})
+}
+
+func (m *Manager) CreateRoomHandler(c *gin.Context) {
+	room := NewRoom(m, "room-"+uuid.NewString())
+
+	m.Lock()
+	m.rooms[room.id] = room
+	m.Unlock()
+
+	go room.Run()
 }

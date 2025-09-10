@@ -1,9 +1,10 @@
 package manager
 
 import (
+	"bytes"
+	"fmt"
+	"text/template"
 	"websockets/models"
-
-	"github.com/google/uuid"
 )
 
 type Room struct {
@@ -17,9 +18,8 @@ type Room struct {
 }
 
 func NewRoom(manager *Manager, name string) *Room {
-	NewUUID := uuid.New()
 	return &Room{
-		id:         NewUUID.String(),
+		id:         name,
 		clients:    make(map[string]*Client),
 		manager:    manager,
 		broadcast:  make(chan models.Message),
@@ -44,4 +44,27 @@ func (r *Room) Run() {
 			}
 		}
 	}
+}
+
+func (r *Room) GetRoomHTML() []byte {
+	tmpl, err := template.ParseFiles("views/newroom.html")
+	if err != nil {
+		fmt.Println("templete parsing err: ", err)
+		return nil
+	}
+
+	var renderedMessage bytes.Buffer
+
+	data := map[string]any{
+		"Room": r.id,
+	}
+
+	if err := tmpl.Execute(&renderedMessage, data); err != nil {
+		fmt.Println("execution err could not replace : ", err)
+		return nil
+	}
+
+	fmt.Println("generated HTML with replaced obj: ", renderedMessage.String())
+
+	return renderedMessage.Bytes()
 }

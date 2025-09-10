@@ -1,11 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Room {{ .RoomID }}</title>
+    <script src="https://unpkg.com/htmx.org"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+</head>
+<body>
+    <h1>Room {{ .RoomID }}</h1>
 
-<div hx-ext="ws" ws-connect="/ws?room={{ .Room }}">  
-    <ul id="chat-app">
+    <div hx-ext="ws" ws-connect="/ws?room={{ .RoomID }}">
+        <ul id="chat-app"></ul>
 
-    </ul>
-
-    <form id="form" ws-send>  
-        <input type="text" name="message" placeholder="Enter your message" required>
-        <button type="submit">Send Message</button>
-    </form>
-</div>
+        <form id="form" ws-send>
+            <input type="text" name="message" placeholder="Enter your message" required>
+            <button type="submit">Send Message</button>
+        </form>
+    </div>
+</body>
+</html>
