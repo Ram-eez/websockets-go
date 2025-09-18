@@ -13,5 +13,6 @@ func main() {
 	store := cookie.NewStore([]byte("secret-key"))
 	router.Use(sessions.Sessions("mysess", store))
 	routes.RegisterRoutes(router)
+	router.LoadHTMLGlob("views/*.html")
 	router.Run(":8080")
 }
