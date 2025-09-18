@@ -13,7 +13,7 @@
         <h2>loading channels ...</h2>
     </div>
     <div id="create-room">
-        <button type="submit" hx-get="/create-room" hx-swap="outerHTML">create new room</button>
+        <button type="button" hx-post="/create-room">create new room</button>
     </div>
     <!-- <div hx-ext="ws" ws-connect="/ws">  
         <ul id="chat-app">

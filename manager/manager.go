@@ -111,4 +111,25 @@ func (m *Manager) CreateRoomHandler(c *gin.Context) {
 	m.Unlock()
 
 	go room.Run()
+
+	c.Header("HX-Redirect", "/room/"+room.id)
+	c.Status(http.StatusSeeOther)
+
+}
+
+func (m *Manager) RoompageHandler(c *gin.Context) {
+	roomID := c.Param("id")
+
+	m.RLock()
+	_, ok := m.rooms[roomID]
+	m.RUnlock()
+
+	if !ok {
+		c.String(http.StatusNotFound, "room not found")
+		return
+	}
+
+	c.HTML(http.StatusOK, "newroom.html", gin.H{
+		"RoomID": roomID,
+	})
 }
