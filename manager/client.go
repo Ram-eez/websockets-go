@@ -21,8 +21,6 @@ type Client struct {
 	closeOnce sync.Once
 }
 
-// type ClientList map[*Client]bool
-
 func NewClient(conn *websocket.Conn, manager *Manager, user *models.User) *Client {
 	NewUUID := uuid.New()
 	return &Client{
@@ -42,29 +40,36 @@ func (c *Client) readMessages() {
 		messageType, payload, err := c.connection.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Println(err)
+				log.Println("WebSocket error:", err)
 			}
 			break
 		}
 
+		// Log raw message for debugging
+		fmt.Printf("Raw message received: %s\n", string(payload))
+
 		var msg models.Message
 		if err := json.Unmarshal(payload, &msg); err != nil {
-			fmt.Println("json unmarshalling err: ", err)
+			fmt.Println("JSON unmarshalling error:", err)
+			fmt.Println("Raw payload was:", string(payload))
 			continue
 		}
+
+		// Set username from authenticated user
 		msg.Username = c.user.Username
 
+		// Determine room ID
 		roomID := msg.RoomID
 		if roomID == "" {
-			roomID = msg.Username + "'s lobby"
+			roomID = "lobby" // Default to lobby instead of user's personal lobby
 		}
+
+		fmt.Printf("Message from %s in room %s: %s\n", msg.Username, roomID, msg.Message)
 
 		r := c.manager.GetorCreateRoom(roomID)
 		r.broadcast <- msg
 
-		fmt.Println(messageType)
-		fmt.Println(string(payload))
-
+		fmt.Printf("Message type: %d\n", messageType)
 	}
 }
 
@@ -74,11 +79,15 @@ func (c *Client) writeMessages() {
 	}()
 
 	for msg := range c.egress {
+		// Log the message being sent for debugging
+		htmlContent := msg.GetMessageHTML()
+		fmt.Printf("Sending HTML to client: %s\n", string(htmlContent))
+
 		if err := c.connection.WriteMessage(
 			websocket.TextMessage,
-			[]byte(msg.GetMessageHTML()),
+			htmlContent,
 		); err != nil {
-			fmt.Println("failed to send the message:", err)
+			fmt.Printf("Failed to send message to client %s: %v\n", c.id, err)
 			return
 		}
 	}
