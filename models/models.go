@@ -3,6 +3,7 @@ package models
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"text/template"
 )
 
@@ -19,7 +20,6 @@ type Message struct {
 }
 
 var RegisteredUsers []User
-var SecretKey = []byte("secret-key")
 
 func (msg *Message) GetMessageHTML() []byte {
 	tmpl, err := template.ParseFiles("views/message.html")
@@ -38,4 +38,12 @@ func (msg *Message) GetMessageHTML() []byte {
 	fmt.Println("generated HTML with replaced obj: ", renderedMessage.String())
 
 	return renderedMessage.Bytes()
+}
+
+func GetJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "secret-key"
+	}
+	return []byte(secret)
 }

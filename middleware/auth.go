@@ -9,8 +9,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var SecretKey = []byte("secret-key")
-
 func CreateToken(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.Username,
@@ -18,7 +16,7 @@ func CreateToken(user *models.User) (string, error) {
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	})
 
-	tokenString, err := token.SignedString(SecretKey)
+	tokenString, err := token.SignedString(models.GetJWTSecret())
 	if err != nil {
 		fmt.Println("err signing the jwt token")
 		return "", err
@@ -30,7 +28,7 @@ func CreateToken(user *models.User) (string, error) {
 func GetUserFromToken(tokenString string) (*models.User, error) {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return models.SecretKey, nil
+		return models.GetJWTSecret(), nil
 	})
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
