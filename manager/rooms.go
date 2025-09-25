@@ -42,26 +42,3 @@ func (r *Room) Run() {
 		}
 	}
 }
-
-// func (r *Room) GetRoomHTML() []byte {
-// 	tmpl, err := template.ParseFiles("views/newroom.html")
-// 	if err != nil {
-// 		fmt.Println("templete parsing err: ", err)
-// 		return nil
-// 	}
-
-// 	var renderedMessage bytes.Buffer
-
-// 	data := map[string]any{
-// 		"Room": r.id,
-// 	}
-
-// 	if err := tmpl.Execute(&renderedMessage, data); err != nil {
-// 		fmt.Println("execution err could not replace : ", err)
-// 		return nil
-// 	}
-
-// 	fmt.Println("generated HTML with replaced obj: ", renderedMessage.String())
-
-// 	return renderedMessage.Bytes()
-// }

@@ -22,7 +22,7 @@ func RegisterRoutes(router *gin.Engine) {
 	router.POST("/register", handlers.RegisterHandler)
 	router.POST("/login", handlers.LoginHandler)
 	router.POST("/create-room", manager.CreateRoomHandler)
-	router.GET("/rooms", handlers.GetAvalibleRooms)
+	router.GET("/rooms", manager.ListRooms)
 	router.GET("/room/:id", manager.RoompageHandler)
 }
 

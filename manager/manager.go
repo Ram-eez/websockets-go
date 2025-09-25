@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -132,4 +133,16 @@ func (m *Manager) RoompageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "newroom.html", gin.H{
 		"RoomID": roomID,
 	})
+}
+
+func (m *Manager) ListRooms(c *gin.Context) {
+	m.RLock()
+	defer m.RUnlock()
+
+	for id := range m.rooms {
+		fmt.Fprintf(c.Writer,
+			`<button hx-get="/rooms/%s" hx-target="#room-output" hx-swap="innerHTML">%s</button>`,
+			id, id,
+		)
+	}
 }
