@@ -9,8 +9,10 @@
     <link rel="stylesheet" href="/static/chat.css">
 </head>
 <body>
-    <div id="room-select" hx-get="/rooms" hx-trigger="load">
-        <h2>loading channels ...</h2>
+    <div>
+        <ul id="room-select" hx-get="/rooms" hx-trigger="load">
+            
+        </ul>
     </div>
     <div id="create-room">
         <button type="button" hx-post="/create-room">create new room</button>

@@ -141,7 +141,9 @@ func (m *Manager) ListRooms(c *gin.Context) {
 
 	for id := range m.rooms {
 		fmt.Fprintf(c.Writer,
-			`<button hx-get="/rooms/%s" hx-target="#room-output" hx-swap="innerHTML">%s</button>`,
+			`<li>
+				<button hx-get="/rooms/%s" hx-target="#room-output" hx-swap="innerHTML">%s</button>
+			</li>`,
 			id, id,
 		)
 	}
