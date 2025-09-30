@@ -1,0 +1,13 @@
+<div class="room-container" hx-ext="ws" ws-connect="/ws?room={{ .RoomID }}">
+    <h1>Room: {{ .RoomID }}</h1>
+    
+    <ul id="chat-app">
+        <!-- Messages will be inserted here -->
+    </ul>
+
+    <form id="form" ws-send>
+        <input type="text" name="message" placeholder="Enter your message" required>
+        <input type="hidden" name="roomid" value="{{ .RoomID }}">
+        <button type="submit">Send</button>
+    </form>
+</div>

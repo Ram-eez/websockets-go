@@ -113,9 +113,11 @@ func (m *Manager) CreateRoomHandler(c *gin.Context) {
 
 	go room.Run()
 
-	c.Header("HX-Redirect", "/room/"+room.id)
-	c.Status(http.StatusSeeOther)
-
+	// Return the new room content and trigger room list refresh
+	c.Header("HX-Trigger", "refreshRooms")
+	c.HTML(http.StatusOK, "room-content.html", gin.H{
+		"RoomID": room.id,
+	})
 }
 
 func (m *Manager) RoompageHandler(c *gin.Context) {
@@ -130,7 +132,8 @@ func (m *Manager) RoompageHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "newroom.html", gin.H{
+	// Return the room content for embedding
+	c.HTML(http.StatusOK, "room-content.html", gin.H{
 		"RoomID": roomID,
 	})
 }
@@ -142,7 +145,7 @@ func (m *Manager) ListRooms(c *gin.Context) {
 	for id := range m.rooms {
 		fmt.Fprintf(c.Writer,
 			`<li>
-				<button hx-get="/rooms/%s" hx-target="#room-output" hx-swap="innerHTML">%s</button>
+				<button hx-get="/room/%s" hx-target="#room-output" hx-swap="innerHTML">%s</button>
 			</li>`,
 			id, id,
 		)

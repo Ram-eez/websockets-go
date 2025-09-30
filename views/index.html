@@ -8,24 +8,24 @@
     <script src="https://cdn.jsdelivr.net/npm/htmx-ext-ws@2.0.2"></script>
     <link rel="stylesheet" href="/static/chat.css">
 </head>
-<body>
-    <div>
-        <ul id="room-select" hx-get="/rooms" hx-trigger="load">
-            
+<body class="chat-layout">
+    <div class="sidebar">
+        <h2>Chat Rooms</h2>
+        <ul id="room-select" hx-get="/rooms" hx-trigger="load, every 5s, refreshRooms from:body">
+            <!-- Rooms will be loaded here -->
         </ul>
+        <div id="create-room">
+            <button type="button" hx-post="/create-room" hx-swap="none">+ Create New Room</button>
+        </div>
     </div>
-    <div id="create-room">
-        <button type="button" hx-post="/create-room">create new room</button>
+    
+    <div class="main-content">
+        <div id="room-output">
+            <div style="text-align: center; color: var(--muted);">
+                <h2>Select a room to start chatting</h2>
+                <p>Choose a room from the sidebar or create a new one</p>
+            </div>
+        </div>
     </div>
-    <!-- <div hx-ext="ws" ws-connect="/ws">  
-        <ul id="chat-app">
-
-        </ul>
-
-        <form id="form" ws-send>  
-            <input type="text" name="message" placeholder="Enter your message" required>
-            <button type="submit">Send Message</button>
-        </form>
-    </div> -->
 </body>
 </html>
