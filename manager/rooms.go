@@ -36,9 +36,29 @@ func (r *Room) Run() {
 			for _, msg := range r.messageHistory {
 				client.egress <- msg
 			}
+			joinMsg := models.Message{
+				Username: "System",
+				Message:  client.user.ID + " joined the rooom ",
+				RoomID:   r.id,
+			}
+			r.messageHistory = append(r.messageHistory, joinMsg)
+
+			for _, c := range r.clients {
+				c.egress <- joinMsg
+			}
 
 		case client := <-r.unregister:
 			delete(r.clients, client.id)
+
+			leaveMsg := models.Message{
+				Username: "System",
+				Message:  client.user.ID + " left the room",
+				RoomID:   r.id,
+			}
+			r.messageHistory = append(r.messageHistory, leaveMsg)
+			for _, c := range r.clients {
+				c.egress <- leaveMsg
+			}
 
 		case msg := <-r.broadcast:
 			r.messageHistory = append(r.messageHistory, msg)
