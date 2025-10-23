@@ -15,6 +15,10 @@ type Handler struct {
 	users *config.UserRepository
 }
 
+func NewHandler(userRepo *config.UserRepository) *Handler {
+	return &Handler{users: userRepo}
+}
+
 func (h *Handler) RegisterUsers(c *gin.Context) {
 	var newUsr models.User
 
@@ -24,13 +28,24 @@ func (h *Handler) RegisterUsers(c *gin.Context) {
 		fmt.Println("could not hash the password: ", err)
 		return
 	}
-
 	newUsr.Password = string(hashedpass)
 	newUsr.ID = uuid.New().String()
 
-	h.users.CreateUser(&newUsr)
+	if _, err := h.users.SearchUser(&newUsr); err != nil {
+		fmt.Println("Username already in use pick another: ", err)
+		c.HTML(http.StatusInternalServerError, "register.html", gin.H{
+			"Error": "Username already taken",
+		})
+		return
+	}
+
+	err = h.users.CreateUser(&newUsr)
 	if err != nil {
 		fmt.Println("could not create a new user : ", err)
+		c.HTML(http.StatusInternalServerError, "register.html", gin.H{
+			"Error": "Database Error",
+		})
+		return
 	}
 
 	c.Redirect(http.StatusFound, "/login")

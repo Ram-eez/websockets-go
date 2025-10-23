@@ -1,21 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"websockets/config"
+	"websockets/handlers"
 	"websockets/routes"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	router := gin.Default()
 	conn, err := config.ConnectDB()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to the database", err)
 	}
 	defer conn.Close()
-	routes.RegisterRoutes(router)
+	err = conn.Ping()
+	if err != nil {
+		log.Fatal("failed to ping the database: ", err)
+	}
+	fmt.Println("Connected to the database successfully")
+	userRepository := config.NewUserRepository(conn)
+	h := handlers.NewHandler(userRepository)
+
+	router := gin.Default()
+	routes.RegisterRoutes(router, h)
 	router.LoadHTMLGlob("views/*.html")
 	router.Run(":8080")
 }
