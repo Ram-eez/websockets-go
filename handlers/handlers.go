@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"websockets/config"
 	"websockets/models"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func RegisterHandler(c *gin.Context) {
+type Handler struct {
+	users *config.UserRepository
+}
+
+func (h *Handler) RegisterUsers(c *gin.Context) {
 	var newUsr models.User
 
 	newUsr.Username = c.PostForm("username")
@@ -23,7 +28,10 @@ func RegisterHandler(c *gin.Context) {
 	newUsr.Password = string(hashedpass)
 	newUsr.ID = uuid.New().String()
 
-	models.RegisteredUsers = append(models.RegisteredUsers, newUsr)
+	h.users.CreateUser(&newUsr)
+	if err != nil {
+		fmt.Println("could not create a new user : ", err)
+	}
 
 	c.Redirect(http.StatusFound, "/login")
 }
