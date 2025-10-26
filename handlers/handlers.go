@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"websockets/config"
+	"websockets/middleware"
 	"websockets/models"
 
 	"github.com/gin-gonic/gin"
@@ -49,4 +50,36 @@ func (h *Handler) RegisterUsers(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, "/login")
+}
+
+func (h *Handler) Login(c *gin.Context) {
+	var newUsr models.User
+	newUsr.Username = c.PostForm("username")
+	newUsr.Password = c.PostForm("password")
+
+	user, err := h.users.SearchUser(&newUsr)
+	if err != nil {
+		fmt.Println("could not find valid user: ", err)
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	fmt.Println("retrieved user: ", user)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(newUsr.Password)); err != nil {
+		fmt.Println("invalid password")
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	tokenString, err := middleware.CreateToken(user)
+	if err != nil {
+		fmt.Println("err : ", err)
+		return
+	}
+
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
+
+	c.Redirect(http.StatusFound, "/chat")
 }
