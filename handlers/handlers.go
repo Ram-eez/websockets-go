@@ -31,7 +31,7 @@ func (h *Handler) RegisterUsers(c *gin.Context) {
 	newUsr.Password = string(hashedpass)
 	newUsr.ID = uuid.New().String()
 
-	if _, err := h.users.SearchUser(&newUsr); err != nil {
+	if _, err := h.users.SearchUser(&newUsr); err == nil {
 		fmt.Println("Username already in use pick another: ", err)
 		c.HTML(http.StatusInternalServerError, "register.html", gin.H{
 			"Error": "Username already taken",
