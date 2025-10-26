@@ -5,20 +5,20 @@ import (
 	"websockets/models"
 )
 
-type UserRepository struct {
+type Repository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *sql.DB) *Repository {
+	return &Repository{db: db}
 }
 
-func (r *UserRepository) CreateUser(User *models.User) error {
+func (r *Repository) CreateUser(User *models.User) error {
 	_, err := r.db.Exec("INSERT INTO users (username, id, password) VALUES ($1, $2, $3)", User.Username, User.ID, User.Password)
 	return err
 }
 
-func (r *UserRepository) SearchUser(User *models.User) (*models.User, error) {
+func (r *Repository) SearchUser(User *models.User) (*models.User, error) {
 	var userRecord models.User
 	err := r.db.QueryRow("SELECT username, id, password FROM users where username = $1", User.Username).Scan(&userRecord.Username, &userRecord.ID, &userRecord.Password)
 	if err == sql.ErrNoRows {
@@ -28,4 +28,9 @@ func (r *UserRepository) SearchUser(User *models.User) (*models.User, error) {
 	} else {
 		return &userRecord, nil
 	}
+}
+
+func (r *Repository) AddMessage(Message *models.Message) error {
+	_, err := r.db.Exec("INSERT INTO messsages (username, message, roomid) VALUES ($1, $2, $3)", Message.Username, Message.Message, Message.RoomID)
+	return err
 }

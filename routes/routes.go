@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(router *gin.Engine, userRepository *handlers.Handler) {
+func RegisterRoutes(router *gin.Engine, repository *handlers.Handler) {
 	manager := manager.NewManager()
 
 	// (frontend)
@@ -19,8 +19,8 @@ func RegisterRoutes(router *gin.Engine, userRepository *handlers.Handler) {
 	router.GET("/ws", manager.ServeWS)
 
 	// auth routes
-	router.POST("/register", userRepository.RegisterUsers)
-	router.POST("/login", userRepository.Login)
+	router.POST("/register", repository.RegisterUsers)
+	router.POST("/login", repository.Login)
 	router.POST("/create-room", manager.CreateRoomHandler)
 	router.GET("/rooms", manager.ListRooms)
 	router.GET("/room/:id", manager.RoompageHandler)

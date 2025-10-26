@@ -13,10 +13,10 @@ import (
 )
 
 type Handler struct {
-	users *config.UserRepository
+	users *config.Repository
 }
 
-func NewHandler(userRepo *config.UserRepository) *Handler {
+func NewHandler(userRepo *config.Repository) *Handler {
 	return &Handler{users: userRepo}
 }
 

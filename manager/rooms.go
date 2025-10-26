@@ -38,10 +38,10 @@ func (r *Room) Run() {
 			}
 			joinMsg := models.Message{
 				Username: "System",
-				Message:  client.user.ID + " joined the rooom ",
+				Message:  client.user.Username + " joined the rooom ",
 				RoomID:   r.id,
 			}
-			r.messageHistory = append(r.messageHistory, joinMsg)
+			//r.messageHistory = append(r.messageHistory, joinMsg)
 
 			for _, c := range r.clients {
 				c.egress <- joinMsg
@@ -52,10 +52,10 @@ func (r *Room) Run() {
 
 			leaveMsg := models.Message{
 				Username: "System",
-				Message:  client.user.ID + " left the room",
+				Message:  client.user.Username + " left the room",
 				RoomID:   r.id,
 			}
-			r.messageHistory = append(r.messageHistory, leaveMsg)
+			//r.messageHistory = append(r.messageHistory, leaveMsg)
 			for _, c := range r.clients {
 				c.egress <- leaveMsg
 			}
