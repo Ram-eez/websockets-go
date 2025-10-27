@@ -66,7 +66,7 @@ func (c *Client) readMessages() {
 
 		fmt.Printf("Message from %s in room %s: %s\n", msg.Username, roomID, msg.Message)
 
-		r := c.manager.GetorCreateRoom(roomID)
+		r := c.manager.GetOrCreateRoom(roomID)
 		r.broadcast <- msg
 
 		fmt.Printf("Message type: %d\n", messageType)

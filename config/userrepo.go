@@ -30,7 +30,42 @@ func (r *Repository) SearchUser(User *models.User) (*models.User, error) {
 	}
 }
 
+func (r *Repository) CreateRoom(id string) error {
+	_, err := r.db.Exec("INSERT INTO rooms (id) VALUES ($1)", id)
+	return err
+}
+
+func (r *Repository) GetAllRooms() ([]string, error) {
+	rows, err := r.db.Query("SELECT id FROM rooms")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var rooms []string
+	for rows.Next() {
+		var roomid string
+		if err := rows.Scan(&roomid); err != nil {
+			continue
+		}
+		rooms = append(rooms, roomid)
+	}
+	return rooms, nil
+}
+
+func (r *Repository) GetRoom(roomID string) (string, error) {
+	var id string
+	err := r.db.QueryRow("SELECT id FROM rooms WHERE id = $1", roomID).Scan(&id)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	if err != nil {
+		return "", nil
+	}
+	return id, nil
+}
+
 func (r *Repository) AddMessage(Message *models.Message) error {
-	_, err := r.db.Exec("INSERT INTO messsages (username, message, roomid) VALUES ($1, $2, $3)", Message.Username, Message.Message, Message.RoomID)
+	_, err := r.db.Exec("INSERT INTO messages (username, message, roomid) VALUES ($1, $2, $3)", Message.Username, Message.Message, Message.RoomID)
 	return err
 }

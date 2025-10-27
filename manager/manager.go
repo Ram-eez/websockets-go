@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"websockets/config"
 	"websockets/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,7 @@ var (
 
 type Manager struct {
 	rooms map[string]*Room
+	repo  *config.Repository
 	sync.RWMutex
 }
 
@@ -64,11 +66,23 @@ func (m *Manager) ServeWS(c *gin.Context) {
 
 }
 
-func (m *Manager) GetorCreateRoom(roomID string) *Room {
+func (m *Manager) GetOrCreateRoom(roomID string) *Room {
 	m.Lock()
 	defer m.Unlock()
+	// checking in memory first
 	if r, ok := m.rooms[roomID]; ok {
 		return r
+	}
+	room, err := m.repo.GetRoom(roomID)
+	if err != nil {
+		log.Printf("Error checking room in DB: %v", err)
+	}
+
+	// Create in DB if doesnt exist
+	if room == "" {
+		if err := m.repo.CreateRoom(roomID); err != nil {
+			log.Printf("Error creating room in DB: %v", err)
+		}
 	}
 	r := NewRoom(m, roomID)
 	m.rooms[roomID] = r
@@ -78,7 +92,7 @@ func (m *Manager) GetorCreateRoom(roomID string) *Room {
 }
 
 func (m *Manager) JoinRoom(client *Client, roomID string) {
-	r := m.GetorCreateRoom(roomID)
+	r := m.GetOrCreateRoom(roomID)
 	r.register <- client
 }
 
@@ -105,18 +119,14 @@ func (m *Manager) UnregisterEverywhere(client *Client) {
 }
 
 func (m *Manager) CreateRoomHandler(c *gin.Context) {
-	room := NewRoom(m, "room-"+uuid.NewString())
+	roomID := "room-" + uuid.NewString()
 
-	m.Lock()
-	m.rooms[room.id] = room
-	m.Unlock()
-
-	go room.Run()
+	m.GetOrCreateRoom(roomID)
 
 	// Return the new room content and trigger room list refresh
 	c.Header("HX-Trigger", "refreshRooms")
 	c.HTML(http.StatusOK, "room-content.html", gin.H{
-		"RoomID": room.id,
+		"RoomID": roomID,
 	})
 }
 
