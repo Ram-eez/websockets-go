@@ -69,3 +69,22 @@ func (r *Repository) AddMessage(Message *models.Message) error {
 	_, err := r.db.Exec("INSERT INTO messages (username, message, roomid) VALUES ($1, $2, $3)", Message.Username, Message.Message, Message.RoomID)
 	return err
 }
+
+func (r *Repository) GetAllRoomMessages(roomID string) ([]*models.Message, error) {
+	rows, err := r.db.Query("SELECT id, username, message FROM messages WHERE roomid = $1;", roomID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var messages []*models.Message
+	for rows.Next() {
+		var m models.Message
+		if err := rows.Scan(&m.RoomID, &m.Username, &m.Message); err != nil {
+			return nil, err
+		}
+		messages = append(messages, &m)
+	}
+	return messages, nil
+}

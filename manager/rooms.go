@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"websockets/models"
 )
 
@@ -33,8 +34,13 @@ func (r *Room) Run() {
 
 		case client := <-r.register:
 			r.clients[client.id] = client
-			for _, msg := range r.messageHistory {
-				client.egress <- msg
+			messages, err := r.manager.repo.GetAllRoomMessages(r.id)
+			if err != nil {
+				fmt.Println("err could not get room information/messages: ", err)
+			}
+
+			for _, msg := range messages {
+				client.egress <- *msg
 			}
 			joinMsg := models.Message{
 				Username: "System",
