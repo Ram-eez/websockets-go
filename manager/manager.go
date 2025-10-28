@@ -29,9 +29,10 @@ type Manager struct {
 	sync.RWMutex
 }
 
-func NewManager() *Manager {
+func NewManager(repo *config.Repository) *Manager {
 	return &Manager{
 		rooms: make(map[string]*Room),
+		repo:  repo,
 	}
 }
 
@@ -149,10 +150,17 @@ func (m *Manager) RoompageHandler(c *gin.Context) {
 }
 
 func (m *Manager) ListRooms(c *gin.Context) {
-	m.RLock()
-	defer m.RUnlock()
+	rooms, err := m.repo.GetAllRooms()
+	if err != nil {
+		fmt.Println("could not fetch rooms: ", err)
+		return
+	}
 
-	for id := range m.rooms {
+	for _, roomID := range rooms {
+		_ = m.GetOrCreateRoom(roomID)
+	}
+
+	for _, id := range rooms {
 		fmt.Fprintf(c.Writer,
 			`<li>
 				<button hx-get="/room/%s" hx-target="#room-output" hx-swap="innerHTML">%s</button>

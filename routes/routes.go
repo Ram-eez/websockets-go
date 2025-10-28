@@ -1,14 +1,15 @@
 package routes
 
 import (
+	"websockets/config"
 	"websockets/handlers"
 	manager "websockets/manager"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(router *gin.Engine, repository *handlers.Handler) {
-	manager := manager.NewManager()
+func RegisterRoutes(router *gin.Engine, handlers *handlers.Handler, repository *config.Repository) {
+	manager := manager.NewManager(repository)
 
 	// (frontend)
 	router.Static("/static", "./static")
@@ -19,8 +20,8 @@ func RegisterRoutes(router *gin.Engine, repository *handlers.Handler) {
 	router.GET("/ws", manager.ServeWS)
 
 	// auth routes
-	router.POST("/register", repository.RegisterUsers)
-	router.POST("/login", repository.Login)
+	router.POST("/register", handlers.RegisterUsers)
+	router.POST("/login", handlers.Login)
 	router.POST("/create-room", manager.CreateRoomHandler)
 	router.GET("/rooms", manager.ListRooms)
 	router.GET("/room/:id", manager.RoompageHandler)

@@ -25,7 +25,7 @@ func main() {
 	h := handlers.NewHandler(userRepository)
 
 	router := gin.Default()
-	routes.RegisterRoutes(router, h)
+	routes.RegisterRoutes(router, h, userRepository)
 	router.LoadHTMLGlob("views/*.html")
 	router.Run(":8080")
 }
