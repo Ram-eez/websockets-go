@@ -79,12 +79,13 @@ func (c *Client) writeMessages() {
 	}()
 
 	for msg := range c.egress {
-		// Log the message being sent for debugging
 		htmlContent := msg.GetMessageHTML()
 		fmt.Printf("Sending HTML to client: %s\n", string(htmlContent))
 
-		if err := c.manager.repo.AddMessage(&msg); err != nil {
-			fmt.Println("could not write the message into repo: ", err)
+		if msg.Username != "System" {
+			if err := c.manager.repo.AddMessage(&msg); err != nil {
+				fmt.Println("could not write message:", err)
+			}
 		}
 
 		if err := c.connection.WriteMessage(

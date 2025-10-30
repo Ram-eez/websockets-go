@@ -71,7 +71,7 @@ func (r *Repository) AddMessage(Message *models.Message) error {
 }
 
 func (r *Repository) GetAllRoomMessages(roomID string) ([]*models.Message, error) {
-	rows, err := r.db.Query("SELECT id, username, message FROM messages WHERE roomid = $1;", roomID)
+	rows, err := r.db.Query("SELECT username, message, roomid FROM messages WHERE roomid = $1 ORDER BY id ASC;", roomID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (r *Repository) GetAllRoomMessages(roomID string) ([]*models.Message, error
 	var messages []*models.Message
 	for rows.Next() {
 		var m models.Message
-		if err := rows.Scan(&m.RoomID, &m.Username, &m.Message); err != nil {
+		if err := rows.Scan(&m.Username, &m.Message, &m.RoomID); err != nil {
 			return nil, err
 		}
 		messages = append(messages, &m)

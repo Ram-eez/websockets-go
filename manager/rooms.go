@@ -44,10 +44,9 @@ func (r *Room) Run() {
 			}
 			joinMsg := models.Message{
 				Username: "System",
-				Message:  client.user.Username + " joined the rooom ",
+				Message:  client.user.Username + " joined the room ",
 				RoomID:   r.id,
 			}
-			//r.messageHistory = append(r.messageHistory, joinMsg)
 
 			for _, c := range r.clients {
 				c.egress <- joinMsg
