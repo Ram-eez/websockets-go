@@ -169,3 +169,9 @@ func (m *Manager) ListRooms(c *gin.Context) {
 		)
 	}
 }
+
+func (m *Manager) RemoveRoom(RoomID string) {
+	m.Lock()
+	defer m.Unlock()
+	delete(m.rooms, RoomID)
+}

@@ -69,13 +69,20 @@ func (r *Repository) AddMessage(Message *models.Message) error {
 	_, err := r.db.Exec("INSERT INTO messages (username, message, roomid) VALUES ($1, $2, $3)", Message.Username, Message.Message, Message.RoomID)
 	return err
 }
+func (r *Repository) GetAllRoomMessages(roomID string, limit int) ([]*models.Message, error) {
+	// Get recent messages in reverse chronological order, then reverse in code
+	query := `
+		SELECT username, message, roomid 
+		FROM messages 
+		WHERE roomid = $1 
+		ORDER BY id DESC 
+		LIMIT $2
+	`
 
-func (r *Repository) GetAllRoomMessages(roomID string) ([]*models.Message, error) {
-	rows, err := r.db.Query("SELECT username, message, roomid FROM messages WHERE roomid = $1 ORDER BY id ASC;", roomID)
+	rows, err := r.db.Query(query, roomID, limit)
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 
 	var messages []*models.Message
@@ -86,5 +93,16 @@ func (r *Repository) GetAllRoomMessages(roomID string) ([]*models.Message, error
 		}
 		messages = append(messages, &m)
 	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Reverse the slice so oldest message is first (chronological order for chat)
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
 	return messages, nil
 }

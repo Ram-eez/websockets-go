@@ -82,12 +82,6 @@ func (c *Client) writeMessages() {
 		htmlContent := msg.GetMessageHTML()
 		fmt.Printf("Sending HTML to client: %s\n", string(htmlContent))
 
-		if msg.Username != "System" {
-			if err := c.manager.repo.AddMessage(&msg); err != nil {
-				fmt.Println("could not write message:", err)
-			}
-		}
-
 		if err := c.connection.WriteMessage(
 			websocket.TextMessage,
 			htmlContent,
