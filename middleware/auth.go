@@ -33,6 +33,7 @@ func GetUserFromToken(tokenString string) (*models.User, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		fmt.Println("could not get claims from the token", err)
+		return nil, err
 	}
 
 	var user models.User

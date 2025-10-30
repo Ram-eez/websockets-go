@@ -69,6 +69,7 @@ func (r *Repository) AddMessage(Message *models.Message) error {
 	_, err := r.db.Exec("INSERT INTO messages (username, message, roomid) VALUES ($1, $2, $3)", Message.Username, Message.Message, Message.RoomID)
 	return err
 }
+
 func (r *Repository) GetAllRoomMessages(roomID string, limit int) ([]*models.Message, error) {
 	// Get recent messages in reverse chronological order, then reverse in code
 	query := `

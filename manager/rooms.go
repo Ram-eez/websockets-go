@@ -10,23 +10,21 @@ type Room struct {
 	clients map[string]*Client
 	manager *Manager
 
-	broadcast      chan models.Message
-	register       chan *Client
-	unregister     chan *Client
-	done           chan struct{}
-	messageHistory []models.Message
+	broadcast  chan models.Message
+	register   chan *Client
+	unregister chan *Client
+	done       chan struct{}
 }
 
 func NewRoom(manager *Manager, name string) *Room {
 	return &Room{
-		id:             name,
-		clients:        make(map[string]*Client),
-		manager:        manager,
-		broadcast:      make(chan models.Message),
-		register:       make(chan *Client),
-		unregister:     make(chan *Client),
-		done:           make(chan struct{}),
-		messageHistory: make([]models.Message, 0),
+		id:         name,
+		clients:    make(map[string]*Client),
+		manager:    manager,
+		broadcast:  make(chan models.Message),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+		done:       make(chan struct{}),
 	}
 }
 
