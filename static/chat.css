@@ -108,6 +108,7 @@ body.chat-layout {
   padding: 0;
   height: 100vh;
   overflow: hidden;
+  align-items: stretch; /* Make children fill height */
 }
 
 .sidebar {
@@ -117,20 +118,43 @@ body.chat-layout {
   display: flex;
   flex-direction: column;
   padding: 20px;
+  height: 100vh; /* Full viewport height */
+  overflow: hidden; /* Prevent sidebar itself from scrolling */
 }
 
 .sidebar h2 {
   margin: 0 0 16px 0;
   font-size: 18px;
   color: var(--text);
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 #room-select {
   list-style: none;
   padding: 0;
-  margin: 0 0 16px 0;
-  flex: 1;
-  overflow-y: auto;
+  margin: 0;
+  flex: 1; /* Take remaining space between header and button */
+  overflow-y: auto; /* Make room list scrollable */
+  min-height: 0; /* Critical for flex scrolling */
+  padding-bottom: 16px; /* Space before create button */
+}
+
+/* Custom scrollbar for room list */
+#room-select::-webkit-scrollbar {
+  width: 6px;
+}
+
+#room-select::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#room-select::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,.3);
+  border-radius: 3px;
+}
+
+#room-select::-webkit-scrollbar-thumb:hover {
+  background: rgba(148,163,184,.5);
 }
 
 #room-select li {
@@ -159,6 +183,12 @@ body.chat-layout {
   background: var(--accent);
   color: white;
   border-color: var(--accent);
+}
+
+#create-room {
+  flex-shrink: 0; /* Prevent button from shrinking */
+  padding-top: 8px;
+  border-top: 1px solid rgba(148,163,184,.15);
 }
 
 #create-room button {
