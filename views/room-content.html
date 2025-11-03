@@ -5,9 +5,42 @@
         <!-- Messages will be inserted here -->
     </ul>
 
-    <form id="form" ws-send>
-        <input type="text" name="message" placeholder="Enter your message" required>
+    <form id="form" ws-send onsubmit="clearInput(event)">
+        <input type="text" id="message-input" name="message" placeholder="Enter your message" required autocomplete="off">
         <input type="hidden" name="roomid" value="{{ .RoomID }}">
         <button type="submit">Send</button>
     </form>
 </div>
+
+<script>
+    function clearInput(event) {
+        const form = event.target;
+        const input = form.querySelector('#message-input');
+        
+        // Use requestAnimationFrame to clear after WebSocket sends
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                input.value = '';
+                input.focus();
+            });
+        });
+    }
+    
+    // Auto-scroll chat to bottom when new messages arrive
+    const chatApp = document.getElementById('chat-app');
+    
+    if (chatApp) {
+        // Scroll to bottom initially
+        chatApp.scrollTop = chatApp.scrollHeight;
+        
+        // Watch for new messages and auto-scroll
+        const observer = new MutationObserver(() => {
+            chatApp.scrollTop = chatApp.scrollHeight;
+        });
+        
+        observer.observe(chatApp, {
+            childList: true,
+            subtree: true
+        });
+    }
+</script>
