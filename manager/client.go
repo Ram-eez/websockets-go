@@ -28,7 +28,7 @@ func NewClient(conn *websocket.Conn, manager *Manager, user *models.User) *Clien
 		connection: conn,
 		user:       user,
 		manager:    manager,
-		egress:     make(chan models.Message),
+		egress:     make(chan models.Message, 100),
 	}
 }
 
