@@ -66,30 +66,36 @@ func (m *Manager) ServeWS(c *gin.Context) {
 	m.JoinRoom(client, roomID)
 
 }
-
 func (m *Manager) GetOrCreateRoom(roomID string) *Room {
+	// Check in-memory first (quick check)
+	m.RLock()
+	if r, ok := m.rooms[roomID]; ok {
+		m.RUnlock()
+		return r
+	}
+	m.RUnlock()
+
+	// Try to create in DB (will fail silently if exists)
+	err := m.repo.CreateRoom(roomID)
+	if err != nil {
+		// Room might already exist - that's fine
+		log.Printf("Room %s already exists or error: %v", roomID, err)
+	}
+
+	// Now create/get in memory
 	m.Lock()
 	defer m.Unlock()
-	// checking in memory first
+
+	// Double-check in case another goroutine created it
 	if r, ok := m.rooms[roomID]; ok {
 		return r
 	}
-	room, err := m.repo.GetRoom(roomID)
-	if err != nil {
-		log.Printf("Error checking room in DB: %v", err)
-	}
 
-	// Create in DB if doesnt exist
-	if room == "" {
-		if err := m.repo.CreateRoom(roomID); err != nil {
-			log.Printf("Error creating room in DB: %v", err)
-		}
-	}
+	// Create room in memory
 	r := NewRoom(m, roomID)
 	m.rooms[roomID] = r
 	go r.Run()
 	return r
-
 }
 
 func (m *Manager) JoinRoom(client *Client, roomID string) {
@@ -122,7 +128,13 @@ func (m *Manager) UnregisterEverywhere(client *Client) {
 func (m *Manager) CreateRoomHandler(c *gin.Context) {
 	roomID := "room-" + uuid.NewString()
 
-	m.GetOrCreateRoom(roomID)
+	// Just create in DB
+	err := m.repo.CreateRoom(roomID)
+	if err != nil {
+		log.Printf("Error creating room: %v", err)
+		c.String(http.StatusInternalServerError, "Failed to create room")
+		return
+	}
 
 	// Return the new room content and trigger room list refresh
 	c.Header("HX-Trigger", "refreshRooms")
@@ -134,11 +146,9 @@ func (m *Manager) CreateRoomHandler(c *gin.Context) {
 func (m *Manager) RoompageHandler(c *gin.Context) {
 	roomID := c.Param("id")
 
-	m.RLock()
-	_, ok := m.rooms[roomID]
-	m.RUnlock()
-
-	if !ok {
+	// Check if room exists in DB
+	_, err := m.repo.GetRoom(roomID)
+	if err != nil {
 		c.String(http.StatusNotFound, "room not found")
 		return
 	}
@@ -156,10 +166,6 @@ func (m *Manager) ListRooms(c *gin.Context) {
 		return
 	}
 
-	for _, roomID := range rooms {
-		_ = m.GetOrCreateRoom(roomID)
-	}
-
 	for _, id := range rooms {
 		fmt.Fprintf(c.Writer,
 			`<li>
@@ -175,3 +181,11 @@ func (m *Manager) RemoveRoom(RoomID string) {
 	defer m.Unlock()
 	delete(m.rooms, RoomID)
 }
+
+// func isDuplicateError(err error) bool {
+// 	errStr := err.Error()
+// 	return strings.Contains(errStr, "duplicate") ||
+// 		strings.Contains(errStr, "already exists") ||
+// 		strings.Contains(errStr, "UNIQUE constraint") ||
+// 		strings.Contains(errStr, "Duplicate entry")
+// }

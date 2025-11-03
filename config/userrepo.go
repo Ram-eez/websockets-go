@@ -35,6 +35,11 @@ func (r *Repository) CreateRoom(id string) error {
 	return err
 }
 
+// func (r *Repository) CreateRoomIfNotExists(roomID string) error {
+// 	_, err := r.db.Exec("INSERT INTO rooms (id) VALUES ($1) CONFLICT (id) DO NOTHING", roomID)
+// 	return err
+// }
+
 func (r *Repository) GetAllRooms() ([]string, error) {
 	rows, err := r.db.Query("SELECT id FROM rooms")
 	if err != nil {
