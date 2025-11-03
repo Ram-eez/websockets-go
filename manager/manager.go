@@ -37,37 +37,55 @@ func NewManager(repo *config.Repository) *Manager {
 }
 
 func (m *Manager) ServeWS(c *gin.Context) {
-
 	log.Println("starting websocket new conn")
 
+	// Upgrade the connection
 	conn, err := websocketUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Fatal("could not upgrade conn: ", conn)
+		log.Printf("could not upgrade connection: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to upgrade connection"})
+		return
 	}
+
+	// Authentication and validation phase
+	// If anything fails here, we need to close the connection
 	token, err := c.Cookie("Authorization")
 	if err != nil {
-		log.Fatal("could not get jwt token from cookies", err)
+		log.Printf("could not get jwt token from cookies: %v", err)
+		conn.WriteMessage(websocket.CloseMessage,
+			websocket.FormatCloseMessage(websocket.CloseNormalClosure, "Authentication required"))
+		conn.Close()
+		return
 	}
 
 	user, err := middleware.GetUserFromToken(token)
 	if err != nil {
-		log.Fatal("user not authenticated for chat: ", err)
+		log.Printf("user not authenticated for chat: %v", err)
+		conn.WriteMessage(websocket.CloseMessage,
+			websocket.FormatCloseMessage(websocket.CloseNormalClosure, "Invalid authentication token"))
+		conn.Close()
+		return
 	}
 
-	client := NewClient(conn, m, user)
-
-	go client.readMessages()
-	go client.writeMessages()
-
+	// Get room ID from query parameter
 	roomID := c.Query("room")
 	if roomID == "" {
 		roomID = "lobby"
 	}
-	m.JoinRoom(client, roomID)
 
+	// Create client - from this point on, client owns the connection lifecycle
+	client := NewClient(conn, m, user)
+
+	// Start client read/write goroutines
+	go client.readMessages()
+	go client.writeMessages()
+
+	// Join the specified room
+	m.JoinRoom(client, roomID)
 }
+
 func (m *Manager) GetOrCreateRoom(roomID string) *Room {
-	// Check in-memory first (quick check)
+	// First quick check with read lock (fast path for existing rooms)
 	m.RLock()
 	if r, ok := m.rooms[roomID]; ok {
 		m.RUnlock()
@@ -75,26 +93,36 @@ func (m *Manager) GetOrCreateRoom(roomID string) *Room {
 	}
 	m.RUnlock()
 
-	// Try to create in DB (will fail silently if exists)
-	err := m.repo.CreateRoom(roomID)
-	if err != nil {
-		// Room might already exist - that's fine
-		log.Printf("Room %s already exists or error: %v", roomID, err)
-	}
-
-	// Now create/get in memory
+	// Acquire write lock to potentially create room
 	m.Lock()
 	defer m.Unlock()
 
-	// Double-check in case another goroutine created it
+	// Double-check: another goroutine might have created it while we waited for the lock
 	if r, ok := m.rooms[roomID]; ok {
 		return r
+	}
+
+	// Try to create room in database
+	// Use a query that checks if room exists first
+	existingRoom, err := m.repo.GetRoom(roomID)
+	if err != nil {
+		log.Printf("Error checking room existence: %v", err)
+	}
+
+	// If room doesn't exist in DB, create it
+	if existingRoom == "" {
+		err = m.repo.CreateRoom(roomID)
+		if err != nil {
+			log.Printf("Error creating room in DB: %v", err)
+			// Continue anyway - room will exist in memory
+		}
 	}
 
 	// Create room in memory
 	r := NewRoom(m, roomID)
 	m.rooms[roomID] = r
 	go r.Run()
+
 	return r
 }
 
